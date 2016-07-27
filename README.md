@@ -13,7 +13,7 @@ This image contains:
 * Apache 2.4
 * MySQL 5.5
 * PHP 5.6
-* Drush 7 (for `7` and `7.*` tags)
+* Drush 7 or 8 (depending on tag)
 * The latest release of Drupal Console (for `8` or `8.*.*` tags)
 * Drupal 7 or 8 (depending on tag)
 * Composer

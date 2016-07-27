@@ -4,6 +4,7 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
 # Install packages.
+RUN apt-get clean
 RUN apt-get update
 RUN apt-get install -y \
 	vim \
@@ -30,6 +31,8 @@ RUN apt-get clean
 # Setup PHP.
 RUN sed -i 's/display_errors = Off/display_errors = On/' /etc/php5/apache2/php.ini
 RUN sed -i 's/display_errors = Off/display_errors = On/' /etc/php5/cli/php.ini
+RUN sed -i 's/max_execution_time = 30/max_execution_time = 0/' /etc/php5/apache2/php.ini
+RUN sed -i 's/max_execution_time = 30/max_execution_time = 0/' /etc/php5/cli/php.ini
 
 # Setup Blackfire.
 # Get the sources and install the Debian packages.
@@ -98,6 +101,10 @@ RUN echo "xdebug.max_nesting_level = 300" >> /etc/php5/cli/conf.d/20-xdebug.ini
 RUN curl -sS https://getcomposer.org/installer | php
 RUN mv composer.phar /usr/local/bin/composer
 
+# Install Drush 8 (master) as phar.
+RUN wget http://files.drush.org/drush.phar
+RUN mv drush.phar /usr/local/bin/drush && chmod +x /usr/local/bin/drush
+
 # Install Drupal Console.
 RUN curl http://drupalconsole.com/installer -L -o drupal.phar
 RUN mv drupal.phar /usr/local/bin/drupal && chmod +x /usr/local/bin/drupal
@@ -133,7 +140,16 @@ RUN /etc/init.d/mysql start && \
 RUN /etc/init.d/mysql start && \
 	cd /var/www && \
 	drupal module:install admin_toolbar --latest && \
-	drupal module:install devel --latest
+	drupal module:install simpletest && \
+	drupal module:install devel --latest && \
+	cd modules/contrib
+	git clone --branch 8.x-1.x https://git.drupal.org/project/tmgmt.git && \
+	git clone --branch 8.x-1.x https://git.drupal.org/sandbox/edurenye/2715815.git tmgmt_memory
+
+# Install ngrok.
+RUN wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip && \
+	unzip ngrok-stable-linux-amd64.zip && \
+	rm ngrok-stable-linux-amd64.zip
 
 EXPOSE 80 3306 22 443
 CMD exec supervisord -n
