@@ -32,7 +32,8 @@ RUN apt-get clean
 RUN sed -i 's/display_errors = Off/display_errors = On/' /etc/php5/apache2/php.ini
 RUN sed -i 's/display_errors = Off/display_errors = On/' /etc/php5/cli/php.ini
 RUN sed -i 's/max_execution_time = 30/max_execution_time = 0/' /etc/php5/apache2/php.ini
-RUN sed -i 's/max_execution_time = 30/max_execution_time = 0/' /etc/php5/cli/php.ini
+RUN sed -i 's/max_input_time = 30/max_input_time = -1/' /etc/php5/apache2/php.ini
+RUN service apache2 restart
 
 # Setup Blackfire.
 # Get the sources and install the Debian packages.
@@ -94,6 +95,9 @@ RUN echo -e '[program:blackfire]\ncommand=/usr/local/bin/launch-blackfire\n\n' >
 RUN echo -e '[program:cron]\ncommand=cron -f\nautorestart=false \n\n' >> /etc/supervisor/supervisord.conf
 
 # Setup XDebug.
+RUN echo "xdebug.idekey = phpstorm" >> /etc/php5/apache2/conf.d/20-xdebug.ini
+RUN echo "xdebug.remote_enable = 1" >> /etc/php5/apache2/conf.d/20-xdebug.ini
+RUN echo "xdebug.remote_connect_back = 1" >> /etc/php5/apache2/conf.d/20-xdebug.ini
 RUN echo "xdebug.max_nesting_level = 300" >> /etc/php5/apache2/conf.d/20-xdebug.ini
 RUN echo "xdebug.max_nesting_level = 300" >> /etc/php5/cli/conf.d/20-xdebug.ini
 
@@ -113,7 +117,7 @@ RUN drupal init
 # Install Drupal.
 RUN rm -rf /var/www
 RUN cd /var && \
-	drupal site:new www 8.1.8
+	drupal site:new www 8.2.0-beta1
 RUN mkdir -p /var/www/sites/default/files && \
 	chmod a+w /var/www/sites/default -R && \
 	mkdir /var/www/sites/all/modules/contrib -p && \
@@ -140,14 +144,12 @@ RUN /etc/init.d/mysql start && \
 RUN /etc/init.d/mysql start && \
 	cd /var/www && \
 	drupal module:install admin_toolbar --latest && \
-	drupal module:install simpletest && \
 	drupal module:install devel --latest && \
-	cd modules/contrib
-	git clone --branch 8.x-1.x https://git.drupal.org/project/tmgmt.git && \
-	git clone --branch 8.x-1.x https://git.drupal.org/sandbox/edurenye/2715815.git tmgmt_memory
+	drush en simpletest -y
 
 # Install ngrok.
-RUN wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip && \
+RUN cd /root && \
+	wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip && \
 	unzip ngrok-stable-linux-amd64.zip && \
 	rm ngrok-stable-linux-amd64.zip
 
