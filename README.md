@@ -5,6 +5,9 @@ Drupal development with Docker
 
 Quick and easy to use Docker container for your *local Drupal development*. It contains a LAMP stack and an SSH server, along with an up to date version of Drush. It is based on [Debian Jessie](https://wiki.debian.org/DebianJessie).
 
+This is a version of wadmiraal drupal-docker https://github.com/wadmiraal/docker-drupal, and is made to be used for the development of my bachelor thesis.
+This version will add tmgmt_demo amd tmgmt_memory to the container.
+
 Summary
 -------
 
@@ -13,12 +16,13 @@ This image contains:
 * Apache 2.4
 * MySQL 5.5
 * PHP 5.6
-* Drush 7 or 8 (depending on tag)
-* The latest release of Drupal Console (for `8` or `8.*.*` tags)
-* Drupal 7 or 8 (depending on tag)
+* Drush 8
+* The latest release of Drupal Console
+* Drupal 8
 * Composer
 * PHPMyAdmin
 * Blackfire
+* Ngrok
 
 When launching, the container will contain a fully-installed, ready to use Drupal site.
 
@@ -44,7 +48,7 @@ If you wish to enable [Blackfire](https://blackfire.io) for profiling, set the f
 Tutorial
 --------
 
-You can read more about this image [here](http://wadmiraal.net/lore/2015/03/27/use-docker-to-kickstart-your-drupal-development/).
+You can read more about the original wadmiraal image [here](http://wadmiraal.net/lore/2015/03/27/use-docker-to-kickstart-your-drupal-development/).
 
 Installation
 ------------
@@ -53,27 +57,9 @@ Installation
 
 Clone the repository locally and build it:
 
-	git clone https://github.com/wadmiraal/docker-drupal.git
+	git clone https://github.com/edurenye/docker-drupal.git
 	cd docker-drupal
 	docker build -t yourname/drupal .
-
-Notice that there are several branches. The `master` branch always refers to the current recommended major Drupal version (version 8 at the time of writing). Other branches, like `7.x`, reflect prior versions.
-
-### Docker repository
-
-Get the image:
-
-	docker pull wadmiraal/drupal
-
-#### Tags
-
-You can specify the specific Drupal version you want, like `7.41` or `8.0.0`. For example:
-
-	docker pull wadmiraal/drupal:7.41
-
-You can also use the latest Drupal version of any major release branch by omitting the minor (and patch) version information:
-
-	docker pull wadmiraal/drupal:7
 
 Running it
 ----------
@@ -84,17 +70,17 @@ The container exposes its `80` and `443` ports (Apache), its `3306` port (MySQL)
 
 Here's an example just running the container and forwarding `localhost:8080` and `localhost:8022` to the container:
 
-	docker run -d -p 8080:80 -p 8022:22 -t wadmiraal/drupal
+	docker run -d -p 8080:80 -p 8022:22 -t edurenye/drupal
 
 If you want to run in HTTPS, you can use:
 
-        docker run -d -p 8443:443 -p 8022:22 -t wadmiraal/drupal
+        docker run -d -p 8443:443 -p 8022:22 -t edurenye/drupal
 
 ### Writing code locally
 
 Here's an example running the container, forwarding port `8080` like before, but also mounting Drupal's `sites/all/modules/custom/` folder to my local `modules/` folder. I can then start writing code on my local machine, directly in this folder, and it will be available inside the container:
 
-	docker run -d -p 8080:80 -v `pwd`/modules:/var/www/sites/all/modules/custom -t wadmiraal/drupal
+	docker run -d -p 8080:80 -v `pwd`/modules:/var/www/sites/all/modules/custom -t edurenye/drupal
 
 ### Using Drush
 
@@ -102,7 +88,7 @@ Using Drush aliases, you can directly execute Drush commands locally and have th
 
 	# ~/.drush/docker.aliases.drushrc.php
 	<?php
-	$aliases['wadmiraal_drupal'] = array(
+	$aliases['edurenye_drupal'] = array(
 	  'root' => '/var/www',
 	  'remote-user' => 'root',
 	  'remote-host' => 'localhost',
@@ -119,7 +105,7 @@ Once you're logged in, add the contents of your `id_rsa.pub` file to `/root/.ssh
 
 You should now be able to call:
 
-	drush @docker.wadmiraal_drupal cc all
+	drush @docker.edurenye_drupal cc all
 
 This will clear the cache of your Drupal site. All other commands will function as well.
 
@@ -128,7 +114,7 @@ This will clear the cache of your Drupal site. All other commands will function 
 Similarly to Drush, Drupal Console can also be run locally, and execute commands remotely. Create a new file called `~/.console/sites/docker.yml` and add the following contents:
 
 	# ~/.console/sites/docker.yml
-	wadmiraal_drupal:
+	edurenye_drupal:
 		root: /var/www
 		host: localhost
 		port: 8022 # Or any other port you specify when running the container
@@ -137,7 +123,7 @@ Similarly to Drush, Drupal Console can also be run locally, and execute commands
 
 You can now call something like:
 
-	drupal --target=docker.wadmiraal_drupal module:download ctools 8.x-3.0-alpha19
+	drupal --target=docker.edurenye_drupal module:download ctools 8.x-3.0-alpha19
 
 You can find more information about Drupal Console [in the official documentation](https://hechoendrupal.gitbooks.io/drupal-console/content/en/using/how-to-use-drupal-console-in-a-remote-installation.html).
 
@@ -169,7 +155,7 @@ PHPMyAdmin is available at `/phpmyadmin`. The MySQL port `3306` is exposed. The 
 
 Example:
 
-	docker run -it --rm -e BLACKFIREIO_SERVER_ID="[your id here]" -e BLACKFIREIO_SERVER_TOKEN="[your token here]" -p 8022:22 -p 8080:80 wadmiraal/drupal
+	docker run -it --rm -e BLACKFIREIO_SERVER_ID="[your id here]" -e BLACKFIREIO_SERVER_TOKEN="[your token here]" -p 8022:22 -p 8080:80 edurenye/drupal
 
 You can now start profiling your application.
 

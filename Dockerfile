@@ -117,7 +117,7 @@ RUN drupal init
 # Install Drupal.
 RUN rm -rf /var/www
 RUN cd /var && \
-	drupal site:new www 8.2.0-beta1
+	drupal site:new www 8.2.0-beta2
 RUN mkdir -p /var/www/sites/default/files && \
 	chmod a+w /var/www/sites/default -R && \
 	mkdir /var/www/sites/all/modules/contrib -p && \
@@ -145,7 +145,14 @@ RUN /etc/init.d/mysql start && \
 	cd /var/www && \
 	drupal module:install admin_toolbar --latest && \
 	drupal module:install devel --latest && \
-	drush en simpletest -y
+	drush en simpletest -y && \
+	chown -R www-data:www-data sites/simpletest && \
+	chmod -R g+rw sites/simpletest && \
+	cd modules/contrib  && \
+	git clone --branch 8.x-1.x https://git.drupal.org/project/tmgmt.git && \
+	git clone --branch 8.x-1.x https://git.drupal.org/sandbox/edurenye/2715815.git tmgmt_memory && \
+	git clone --branch 8.x-1.x https://git.drupal.org/sandbox/sasanikolic/2737249.git tmgmt_ckeditor && \
+	drush en tmgmt_demo tmgmt_memory -y
 
 # Install ngrok.
 RUN cd /root && \
