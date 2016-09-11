@@ -151,8 +151,10 @@ RUN /etc/init.d/mysql start && \
 	cd modules/contrib  && \
 	git clone --branch 8.x-1.x https://git.drupal.org/project/tmgmt.git && \
 	git clone --branch 8.x-1.x https://git.drupal.org/sandbox/edurenye/2715815.git tmgmt_memory && \
+	git clone --branch 8.x-1.x https://git.drupal.org/project/search_api.git && \
+	git clone --branch 8.x-1.x https://git.drupal.org/project/paragraphs.git && \
 	git clone --branch 8.x-1.x https://git.drupal.org/sandbox/sasanikolic/2737249.git tmgmt_ckeditor && \
-	drush en tmgmt_demo tmgmt_memory -y
+	drush en tmgmt_demo tmgmt_memory tmgmt_ckeditor -y
 
 # Install ngrok.
 RUN cd /root && \
