@@ -85,6 +85,10 @@ RUN /etc/init.d/mysql start && \
 RUN echo 'root:root' | chpasswd
 RUN useradd -ms /bin/bash drupal
 RUN echo 'drupal:drupal' | chpasswd
+RUN sed -e '/export APACHE_RUN_USER=www-data/s/^/#/g' -i /etc/apache2/envvars
+RUN echo "export APACHE_RUN_USER=drupal" >> /etc/apache2/envvars
+RUN sed -e '/export APACHE_RUN_GROUP=www-data/s/^/#/g' -i /etc/apache2/envvars
+RUN echo "export APACHE_RUN_GROUP=drupal" >> /etc/apache2/envvars
 RUN sed -i 's/^#PermitRootLogin.\+/PermitRootLogin yes/' /etc/ssh/sshd_config
 RUN mkdir /var/run/sshd && chmod 0755 /var/run/sshd
 RUN mkdir -p /root/.ssh/ && touch /root/.ssh/authorized_keys
@@ -133,7 +137,7 @@ RUN mkdir -p /var/www/sites/default/files && \
 	cp /var/www/sites/default/default.services.yml /var/www/sites/default/services.yml && \
 	chmod 0664 /var/www/sites/default/settings.php && \
 	chmod 0664 /var/www/sites/default/services.yml && \
-	chown -R www-data:www-data /var/www/
+	chown -R drupal:drupal /var/www/
 RUN /etc/init.d/mysql start && \
 	cd /var/www && \
 	drush si -y standard --db-url=mysql://drupal:drupal@localhost/drupal --account-pass=admin && \
